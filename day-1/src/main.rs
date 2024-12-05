@@ -3,9 +3,18 @@ use std::io::Read;
 
 use nom;
 
+// this pseudocode should be possible, but I don't feel like writing it:
+// ```text
+// list_1.sort()
+// sort list_2 and count the number of items while sorting, inserting into list_2_count_map
+// iterate over list_1 and calculate sum_of_products
+// iterate over list_1 + list_2, calculating summed_differences
+// ```
+// this should make one iteration of list_2 (on line `29`) unnecessary
 fn main() {
     let mut input_file = File::open("src/input.txt").expect("couldn't open file");
     let mut input_file_contents = String::new();
+    let mut list_2_count_map = std::collections::HashMap::new();
 
     input_file
         .read_to_string(&mut input_file_contents) // TODO stream file with BufReader?
@@ -16,23 +25,21 @@ fn main() {
     list_1.sort();
     list_2.sort();
 
-    let summed_differences: u32 = std::iter::zip(list_1.clone(), list_2.clone())
+    // calculate part 2 first so we don't have to clone:
+    list_2
+        .iter_mut()
+        .for_each(|id| *list_2_count_map.entry(id).or_insert(0) += 1);
+
+    let sum_of_products: u64 = list_1
+        .iter()
+        .map(|id| u64::from(*id) * list_2_count_map.get(id).unwrap_or(&0))
+        .sum();
+
+    let summed_differences: u32 = std::iter::zip(list_1, list_2)
         .map(|(id1, id2)| id2.abs_diff(id1))
         .sum();
 
     println!("(part 1) summed_differences is {}", summed_differences);
-
-    let mut list_2_map = std::collections::HashMap::new();
-
-    list_2
-        .iter_mut()
-        .for_each(|id| *list_2_map.entry(id).or_insert(0) += 1);
-
-    let sum_of_products: u64 = list_1
-        .iter()
-        .map(|id| u64::from(*id) * list_2_map.get(id).unwrap_or(&0))
-        .sum();
-
     println!("(part 2) sum_of_products is {}", sum_of_products);
 }
 
