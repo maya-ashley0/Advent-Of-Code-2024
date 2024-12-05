@@ -16,11 +16,24 @@ fn main() {
     list_1.sort();
     list_2.sort();
 
-    let summed_differences: u32 = std::iter::zip(list_1, list_2)
+    let summed_differences: u32 = std::iter::zip(list_1.clone(), list_2.clone())
         .map(|(id1, id2)| id2.abs_diff(id1))
         .sum();
 
     println!("(part 1) summed_differences is {}", summed_differences);
+
+    let mut list_2_map = std::collections::HashMap::new();
+
+    list_2
+        .iter_mut()
+        .for_each(|id| *list_2_map.entry(id).or_insert(0) += 1);
+
+    let sum_of_products: u64 = list_1
+        .iter()
+        .map(|id| u64::from(*id) * list_2_map.get(id).unwrap_or(&0))
+        .sum();
+
+    println!("(part 2) sum_of_products is {}", sum_of_products);
 }
 
 // TODO add error handling
